@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.github.farmacia.Farmacia.db.exceptions.ResgistroDuplicado;
 import io.github.farmacia.Farmacia.db.model.Item;
 import io.github.farmacia.Farmacia.db.repository.ItemRepository;
 
@@ -16,7 +17,7 @@ public class ValidadorItem {
 
     public void validar(Item item){
         if(existsItem(item)){
-            throw new RuntimeException("Item já cadastrado");
+            throw new ResgistroDuplicado("Item já cadastrado");
         }
     }
 

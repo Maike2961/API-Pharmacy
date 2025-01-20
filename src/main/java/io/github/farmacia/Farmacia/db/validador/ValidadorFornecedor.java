@@ -1,5 +1,6 @@
 package io.github.farmacia.Farmacia.db.validador;
 
+import io.github.farmacia.Farmacia.db.exceptions.ResgistroDuplicado;
 import io.github.farmacia.Farmacia.db.model.Fornecedor;
 import io.github.farmacia.Farmacia.db.repository.FornecedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ public class ValidadorFornecedor {
 
     public void validar(Fornecedor fornecedor){
         if(existsFornecedor(fornecedor)){
-            throw new RuntimeException("Fornecedor ja cadastrado com esse local");
+            throw new ResgistroDuplicado("Fornecedor ja cadastrado com esse local");
         }
     }
 

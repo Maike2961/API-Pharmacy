@@ -1,9 +1,13 @@
 package io.github.farmacia.Farmacia.db.controller;
 
+import io.github.farmacia.Farmacia.db.DTO.ErroRespostaDTO;
 import io.github.farmacia.Farmacia.db.DTO.FornecedorDTO;
 import io.github.farmacia.Farmacia.db.DTO.PesquisaFornecedorDTO;
+import io.github.farmacia.Farmacia.db.exceptions.OperacaoNaoPermitida;
+import io.github.farmacia.Farmacia.db.exceptions.ResgistroDuplicado;
 import io.github.farmacia.Farmacia.db.model.Fornecedor;
 import io.github.farmacia.Farmacia.db.service.FornecedorService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,28 +27,33 @@ public class FornecedorController {
     private FornecedorService service;
 
     @PostMapping
-    public ResponseEntity<Object> salvar(@RequestBody FornecedorDTO fornecedorDTO){
-        Fornecedor mapear = fornecedorDTO.mapear();
-        service.salvar(mapear);
-        URI uri = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(mapear.getId())
-                .toUri();
-        return ResponseEntity.created(uri).build();
+    public ResponseEntity<Object> salvar(@RequestBody @Valid FornecedorDTO fornecedorDTO) {
+        try {
+            Fornecedor mapear = fornecedorDTO.mapear();
+            service.salvar(mapear);
+            URI uri = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(mapear.getId())
+                    .toUri();
+            return ResponseEntity.created(uri).build();
+        } catch (ResgistroDuplicado e) {
+            ErroRespostaDTO respostaConflito = ErroRespostaDTO.respostaConflito(e.getMessage());
+            return ResponseEntity.status(respostaConflito.status()).body(respostaConflito);
+        }
+
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> obterPorID(@PathVariable("id") String id){
+    public ResponseEntity<Object> obterPorID(@PathVariable("id") String id) {
         UUID uuid = UUID.fromString(id);
         Optional<Fornecedor> fornecedor = service.getById(uuid);
 
-        if(fornecedor.isPresent()){
+        if (fornecedor.isPresent()) {
             Fornecedor fornecedor1 = fornecedor.get();
             FornecedorDTO fornecedorDTO = new FornecedorDTO(
                     fornecedor1.getCompanhia(),
-                    fornecedor1.getLocal()
-            );
+                    fornecedor1.getLocal());
             return ResponseEntity.ok(fornecedorDTO);
         }
         return ResponseEntity.notFound().build();
@@ -52,49 +61,56 @@ public class FornecedorController {
 
     @GetMapping
     public ResponseEntity<List<PesquisaFornecedorDTO>> pesquisa(
-            @RequestParam(value = "companhia", required = false) String companhia)
-    {
+            @RequestParam(value = "companhia", required = false) String companhia) {
         List<Fornecedor> pesquisa = service.pesquisa(companhia);
-        List<PesquisaFornecedorDTO> fornecedorDTOStream =
-                pesquisa.stream().map(
-                        fornecedor -> new PesquisaFornecedorDTO(
-                        fornecedor.getId(), 
+        List<PesquisaFornecedorDTO> fornecedorDTOStream = pesquisa.stream().map(
+                fornecedor -> new PesquisaFornecedorDTO(
+                        fornecedor.getId(),
                         fornecedor.getCompanhia(),
-                        fornecedor.getLocal()
-                        )).collect(Collectors.toList());
+                        fornecedor.getLocal()))
+                .collect(Collectors.toList());
         return ResponseEntity.ok(fornecedorDTOStream);
     }
 
     @PutMapping("{id}")
     public ResponseEntity<Object> atualizar(
-            @PathVariable("id") String id,
-            @RequestBody FornecedorDTO fornecedorDTO){
+            @Valid @PathVariable("id") String id,
+            @RequestBody FornecedorDTO fornecedorDTO) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            Optional<Fornecedor> fornecedor = service.getById(uuid);
 
-        UUID uuid = UUID.fromString(id);
-
-        Optional<Fornecedor> fornecedor = service.getById(uuid);
-
-        if(fornecedor.isEmpty()){
-            return ResponseEntity.notFound().build();
+            if (fornecedor.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Fornecedor fornecedor1 = fornecedor.get();
+            fornecedor1.setCompanhia(fornecedorDTO.companhia());
+            fornecedor1.setLocal(fornecedorDTO.local());
+            service.atualizar(fornecedor1);
+            return ResponseEntity.ok(fornecedorDTO);
+        } catch (ResgistroDuplicado e) {
+            ErroRespostaDTO respostaConflito = ErroRespostaDTO.respostaConflito(e.getMessage());
+            return ResponseEntity.status(respostaConflito.status()).body(respostaConflito);
         }
-        Fornecedor fornecedor1 = fornecedor.get();
-        fornecedor1.setCompanhia(fornecedorDTO.companhia());
-        fornecedor1.setLocal(fornecedorDTO.local());
-        service.atualizar(fornecedor1);
-        return ResponseEntity.ok(fornecedorDTO);
+
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deletar(@PathVariable("id") String id){
-        UUID uuid = UUID.fromString(id);
+    public ResponseEntity<Object> deletar(@PathVariable("id") String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
 
-        Optional<Fornecedor> fornecedor = service.getById(uuid);
+            Optional<Fornecedor> fornecedor = service.getById(uuid);
 
-        if(fornecedor.isEmpty()){
-            return ResponseEntity.notFound().build();
+            if (fornecedor.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            service.deletar(fornecedor.get());
+            return ResponseEntity.noContent().build();
+
+        } catch (OperacaoNaoPermitida e) {
+            ErroRespostaDTO resposta400 = ErroRespostaDTO.resposta400(e.getMessage());
+            return ResponseEntity.status(resposta400.status()).body(resposta400);
         }
-        service.deletar(fornecedor.get());
-        return ResponseEntity.noContent().build();
-
     }
 }

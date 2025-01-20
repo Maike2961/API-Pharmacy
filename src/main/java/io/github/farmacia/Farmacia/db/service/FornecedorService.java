@@ -1,5 +1,6 @@
 package io.github.farmacia.Farmacia.db.service;
 
+import io.github.farmacia.Farmacia.db.exceptions.OperacaoNaoPermitida;
 import io.github.farmacia.Farmacia.db.model.Fornecedor;
 import io.github.farmacia.Farmacia.db.repository.FornecedorRepository;
 import io.github.farmacia.Farmacia.db.repository.ItemRepository;
@@ -48,7 +49,7 @@ public class FornecedorService {
 
     public void deletar(Fornecedor fornecedor){
         if(possuiItens(fornecedor)){
-            throw new RuntimeException("Fornecedor tem itens");
+            throw new OperacaoNaoPermitida("Fornecedor tem itens cadastrados");
         }
         repository.delete(fornecedor);
     }
