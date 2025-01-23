@@ -11,5 +11,7 @@ import java.util.UUID;
 
 public interface FornecedorRepository extends JpaRepository<Fornecedor, UUID> {
     List<Fornecedor> findByCompanhia(String companhia);
+
+    List<Fornecedor> findByCompanhiaLike(String companhia);
     Optional<Fornecedor> findByCompanhiaAndLocal(String companhia, FornecedorLocais local);
 }

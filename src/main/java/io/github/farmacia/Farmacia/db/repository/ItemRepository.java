@@ -16,5 +16,7 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
 
     Optional<Item> findByNomeAndQuantidade(String nome, int quantidade);
 
+    List<Item> findByNomeLike(String nome);
+
 
 }
