@@ -32,7 +32,7 @@ public class ItemService {
 
     public List<Item> pesquisar(String nome){
         if(nome != null){
-            List<Item> byNome = repository.findByNome(nome);
+            List<Item> byNome = repository.findByNomeLike("%" + nome + "%");
             return byNome;
         }
         return repository.findAll();

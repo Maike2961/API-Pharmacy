@@ -34,7 +34,7 @@ public class FornecedorService {
 
     public List<Fornecedor> pesquisa(String company){
         if(company != null){
-            return repository.findByCompanhia(company);
+            return repository.findByCompanhiaLike("%" + company + "%");
         }
         return repository.findAll();
     }
