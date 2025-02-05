@@ -1,10 +1,7 @@
 package io.github.farmacia.Farmacia.db.controller;
 
-import io.github.farmacia.Farmacia.db.DTO.ErroRespostaDTO;
 import io.github.farmacia.Farmacia.db.DTO.FornecedorDTO;
 import io.github.farmacia.Farmacia.db.DTO.PesquisaFornecedorDTO;
-import io.github.farmacia.Farmacia.db.exceptions.OperacaoNaoPermitida;
-import io.github.farmacia.Farmacia.db.exceptions.ResgistroDuplicado;
 import io.github.farmacia.Farmacia.db.model.Fornecedor;
 import io.github.farmacia.Farmacia.db.service.FornecedorService;
 import jakarta.validation.Valid;
@@ -28,7 +25,6 @@ public class FornecedorController {
 
     @PostMapping
     public ResponseEntity<Object> salvar(@RequestBody @Valid FornecedorDTO fornecedorDTO) {
-        try {
             Fornecedor mapear = fornecedorDTO.mapear();
             service.salvar(mapear);
             URI uri = ServletUriComponentsBuilder
@@ -37,11 +33,6 @@ public class FornecedorController {
                     .buildAndExpand(mapear.getId())
                     .toUri();
             return ResponseEntity.created(uri).build();
-        } catch (ResgistroDuplicado e) {
-            ErroRespostaDTO respostaConflito = ErroRespostaDTO.respostaConflito(e.getMessage());
-            return ResponseEntity.status(respostaConflito.status()).body(respostaConflito);
-        }
-
     }
 
     @GetMapping("/{id}")
@@ -76,10 +67,8 @@ public class FornecedorController {
     public ResponseEntity<Object> atualizar(
             @Valid @PathVariable("id") String id,
             @RequestBody FornecedorDTO fornecedorDTO) {
-        try {
             UUID uuid = UUID.fromString(id);
             Optional<Fornecedor> fornecedor = service.getById(uuid);
-
             if (fornecedor.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -88,16 +77,11 @@ public class FornecedorController {
             fornecedor1.setLocal(fornecedorDTO.local());
             service.atualizar(fornecedor1);
             return ResponseEntity.ok(fornecedorDTO);
-        } catch (ResgistroDuplicado e) {
-            ErroRespostaDTO respostaConflito = ErroRespostaDTO.respostaConflito(e.getMessage());
-            return ResponseEntity.status(respostaConflito.status()).body(respostaConflito);
-        }
-
+    
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deletar(@PathVariable("id") String id) {
-        try {
             UUID uuid = UUID.fromString(id);
 
             Optional<Fornecedor> fornecedor = service.getById(uuid);
@@ -107,10 +91,6 @@ public class FornecedorController {
             }
             service.deletar(fornecedor.get());
             return ResponseEntity.noContent().build();
-
-        } catch (OperacaoNaoPermitida e) {
-            ErroRespostaDTO resposta400 = ErroRespostaDTO.resposta400(e.getMessage());
-            return ResponseEntity.status(resposta400.status()).body(resposta400);
-        }
     }
+
 }

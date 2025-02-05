@@ -1,6 +1,5 @@
 package io.github.farmacia.Farmacia.db.controller;
 
-import io.github.farmacia.Farmacia.db.DTO.ErroRespostaDTO;
 import io.github.farmacia.Farmacia.db.DTO.FornecedorDTO;
 import io.github.farmacia.Farmacia.db.DTO.ItemDTO;
 import io.github.farmacia.Farmacia.db.DTO.PesquisaItemDTO;
@@ -33,21 +32,18 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<Object> salvar(@RequestBody @Valid ItemDTO itemDTO) {
-        try {
-            Item mapear = itemDTO.mapear();
-            mapear.setFornecedor(repository.findById(itemDTO.idFornecedor())
-                    .orElseThrow(() -> new ResgistroDuplicado("Fornecedor não encontrado")));
 
-            service.salvar(mapear);
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(mapear.getId())
-                    .toUri();
-            return ResponseEntity.created(uri).build();
-        } catch (ResgistroDuplicado e) {
-            ErroRespostaDTO erro = ErroRespostaDTO.respostaConflito(e.getMessage());
-            return ResponseEntity.status(erro.status()).body(erro);
-        }
+        Item mapear = itemDTO.mapear();
+        mapear.setFornecedor(repository.findById(itemDTO.idFornecedor())
+                .orElseThrow(() -> new ResgistroDuplicado("Fornecedor não encontrado")));
+
+        service.salvar(mapear);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(mapear.getId())
+                .toUri();
+        return ResponseEntity.created(uri).build();
+
     }
 
     @GetMapping
@@ -95,31 +91,27 @@ public class ItemController {
 
     @PutMapping("{id}")
     public ResponseEntity<Object> atualizar(@PathVariable("id") String id, @RequestBody ItemDTO itemDTO) {
-        try {
-            UUID fromString = UUID.fromString(id);
-            Optional<Item> obterPorID = service.obterPorID(fromString);
-            if (obterPorID.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            Item item = obterPorID.get();
-            item.setNome(itemDTO.nome());
-            item.setPrecoCompra(itemDTO.precoCompra());
-            item.setPrecoVenda(itemDTO.precoVenda());
-            item.setQuantidade(itemDTO.quantidade());
-            item.setFornecedor(repository.findById(itemDTO.idFornecedor())
-                    .orElseThrow(() -> new ResgistroDuplicado("Item não encontrado")));
-            service.atualizar(item);
-            return ResponseEntity.ok(itemDTO);
-        } catch (ResgistroDuplicado e) {
-            ErroRespostaDTO resposta400 = ErroRespostaDTO.respostaConflito(e.getMessage());
-            return ResponseEntity.status(resposta400.status()).body(resposta400);
+
+        UUID fromString = UUID.fromString(id);
+        Optional<Item> obterPorID = service.obterPorID(fromString);
+        if (obterPorID.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        Item item = obterPorID.get();
+        item.setNome(itemDTO.nome());
+        item.setPrecoCompra(itemDTO.precoCompra());
+        item.setPrecoVenda(itemDTO.precoVenda());
+        item.setQuantidade(itemDTO.quantidade());
+        item.setFornecedor(repository.findById(itemDTO.idFornecedor())
+                .orElseThrow(() -> new ResgistroDuplicado("Item não encontrado")));
+        service.atualizar(item);
+        return ResponseEntity.ok(itemDTO);
+
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deletar(@PathVariable("id") String id) {
         UUID fromString = UUID.fromString(id);
-
         return service.obterPorID(fromString).map(
                 t -> {
                     service.deletar(t);
