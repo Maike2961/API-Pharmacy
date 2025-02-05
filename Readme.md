@@ -1,6 +1,6 @@
-# API de Farmacia
+# Pharmacy API
 
-## Tecnologias usadas:
+## Technologies:
 - Java
 - Spring boot
 - Spring security
