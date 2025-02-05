@@ -1,11 +1,11 @@
 package io.github.farmacia.Farmacia.db.model.Erro;
 
-public class RestExceptionHandler {
+public class ErroMensagem {
     private String title;
     private Integer status;
     private String message;
 
-    public RestExceptionHandler(String title, Integer status, String message) {
+    public ErroMensagem(String title, Integer status, String message) {
         this.title = title;
         this.status = status;
         this.message = message;
