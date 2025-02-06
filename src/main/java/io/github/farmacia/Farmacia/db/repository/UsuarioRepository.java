@@ -6,4 +6,7 @@ import io.github.farmacia.Farmacia.db.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID>{
     Usuario findByLogin(String login);
+
+    boolean existsByLogin(String login);
+
 }
